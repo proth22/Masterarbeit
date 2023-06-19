@@ -11,9 +11,9 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 
-
+## ToDo: Hardcoding entfernen
 COEFS = 10
-IN_DIM = 512
+IN_DIM = 512 #512  #entspricht dim (feature vector dim)
 OUT_DIM = IN_DIM
 
 

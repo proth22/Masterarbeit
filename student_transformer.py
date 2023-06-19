@@ -130,7 +130,7 @@ if __name__ =="__main__":
 
     v = ViT(
         image_size = 512,
-        patch_size = 32,
+        patch_size = 64,
         num_classes = 1,
         dim = 512,
         depth = 6,

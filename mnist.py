@@ -16,9 +16,8 @@ import os
 import matplotlib.pyplot as plt
 import numpy as np
 from skimage.io import imread
-#import cv2
 from collections import OrderedDict
-from itertools import chain
+#from itertools import chain
 import random
 random.seed(123)
 
@@ -39,8 +38,6 @@ def read_files(root,d, product, data_motive = 'train', use_good = True, normal =
         Path and Image ordered dict for the test dataset
     '''
     a = os.path.join(root,d)
-    print('a:', a)
-    #a = os.walk(os.path.join(root,d))[1]
     #print('a:', a)
     files = next(os.walk(os.path.join(root,d)))[1]
     #walk() generates the file names in a directory tree by walking the tree either top-down or bottom-up
@@ -96,13 +93,9 @@ def read_files(root,d, product, data_motive = 'train', use_good = True, normal =
                     
 def load_images(path, image_name):
     if image_name != '.DS_Store':
-        #print('path', path)
-        #print('image_name',image_name)
-        #array = torch.from_numpy(imread(os.path.join(path,image_name)))
         array = imread(os.path.join(path,image_name))
-        #print(type(array))
         if type(array) is None :
-            print('Hilfe')
+            print('Array is of None-type')
         return array
     else:
         return 
@@ -124,13 +117,9 @@ def Test_anom_data(root, product= 'zahlen', use_good = False):
     dir = os.listdir(root)[1]
        
     if product == 'zahlen':
-             print('hier1')
              if dir == 'zahlen':
-                 print('hier2')
                  pth_img_dict = read_files(root, dir, product, data_motive='test', use_good = use_good, normal = False)
                  print(pth_img_dict)
-                 print('3')
-                 #print('path_img:', pth_img)
                  return pth_img_dict
      
     
@@ -159,16 +148,11 @@ def Test_anom_mask(root, product= 'zahlen', use_good = False):
         Path and Image ordered dict for the test dataset
     '''
     dir = os.listdir(root)[1]
-    print(dir)
     
     if product == 'zahlen':
-            print('hier1')
             if dir == 'zahlen':
-                print('hier2')
                 pth_img_dict = read_files(root, dir, product,data_motive='test', use_good = use_good, normal = False)
                 print(pth_img_dict)
-                print('3')
-                #print('path_img:', pth_img)
                 return pth_img_dict
     
     
@@ -194,13 +178,9 @@ def Test_normal_data(root, product= 'zahlen', use_good = True):
     print(dir)
     
     if product == 'zahlen':
-            print('hier1')
             if dir == 'zahlen':
-                print('hier2')
                 pth_img = read_files(root, dir, product,data_motive='test',use_good = True, normal = True)
                 print(pth_img)
-                print('3')
-                #print('path_img:', pth_img)
                 return pth_img
     
                       
@@ -217,9 +197,7 @@ def Train_data(root, product = 'zahlen', use_good = True):
     Returns:
         Path and Image ordered dict for the training dataset
     '''
-    print('Haaalloooo')
     dir = os.listdir(root)[1]
-    print('dir:', dir)
     
     #for d in dir:
     '''
@@ -231,13 +209,9 @@ def Train_data(root, product = 'zahlen', use_good = True):
             return pth_img
     '''
     if product == 'zahlen':
-            print('hier1')
             if dir == 'zahlen':
-                print('hier2')
                 pth_img = read_files(root, dir, product,data_motive='train')
                 print(pth_img)
-                print('3')
-                #print('path_img:', pth_img)
                 return pth_img
         
 def Process_mask(mask):
@@ -259,24 +233,19 @@ class MNist:
         self.product = product
         #self.img_ext = img_ext
         torch.manual_seed(123)
-        print('1')
         # Importing all the image_path dictionaries for test and train data #
         train_path_images =Train_data(root = self.root, product = self.product)
-        print('2')
         #print(train_path_images)
         print(train_path_images.keys())
         test_anom_path_images = Test_anom_data(root = self.root, product=self.product)
-        print('4')
         test_anom_mask_path_images = Test_anom_mask(root = self.root, product = self.product)
-        print('5')
         test_norm_path_images = Test_normal_data(root= self.root, product = self.product)
-        print('6')
             
         ## Image Transformation ##
         T = transforms.Compose([
                 transforms.ToPILImage(), #The Pillow library contains all the basic image processing functionality
-                transforms.Resize((550,550)),
-                transforms.CenterCrop(512),
+                transforms.Resize((150,150)),
+                transforms.CenterCrop(128),
                 transforms.ToTensor(),
     #            transforms.Normalize((0.1307,), (0.3081,)),
         ])
@@ -288,11 +257,6 @@ class MNist:
         #ab = load_images(train_path_images.keys()[1],train_path_images[1][1])
         #print('Hallo',train_path_images.keys())
         #print('Hallo',train_path_images)
-        for i in range(1,len(train_path_images.keys())):
-            for j in range(1,len(train_path_images[i])):
-                print('????')
-                #arra = load_images(j,i)
-                #print(arra)
                 
         #for i in train_path_images.keys():
             #for j in train_path_images[i]:
@@ -354,16 +318,15 @@ class MNist:
         liste_anommask = []
         for j in test_anom_path_images[path_anom]:
             if j.endswith(".jpg"):
-                #print(j)
                 element = imread(os.path.join(path_anom,j))
                 liste_anommask.append(element)
         
         test_anom_mask = torch.stack([T(i) for i in liste_anom])
         print(test_anom_mask)
         
+        #Korrigiere hier ggf noch NonType Problem wegen DS.Store Datei
         #test_anom_mask = torch.stack([Process_mask(T(load_images(j,i))) for j in test_anom_mask_path_images.keys() for i in test_anom_mask_path_images[j]])
-        
-        print('Bis hier 1')
+
         train_normal = tuple(zip(train_normal_image, train_normal_mask))
         test_anom = tuple(zip(test_anom_image, test_anom_mask))
         test_normal = tuple(zip(test_normal_image,test_normal_mask))                      
@@ -373,8 +336,7 @@ class MNist:
         else:
             print(f'[!Info] Size Mismatch between Anomaly images {test_anom_image.size()} and Masks {test_anom_mask.size()} Loaded')
         print(f' --Size of {self.product} test normal loader: {test_normal_image.size()}--')          
-        
-        print('Bis hier 2')    
+
         # validation set #
         num = ran_generator(len(test_anom),10)
         val_anom = [test_anom[i] for i in num]
@@ -387,8 +349,7 @@ class MNist:
         self.test_anom_loader = torch.utils.data.DataLoader(test_anom, batch_size = batch_size, shuffle=False)
         self.test_norm_loader = torch.utils.data.DataLoader(test_normal, batch_size=batch_size, shuffle=False)
         self.validation_loader = torch.utils.data.DataLoader(val_set, batch_size=batch_size, shuffle=False)
-        
-        print('Bis hier 3')
+
             
             
 if __name__ == "__main__":

@@ -9,13 +9,13 @@ from student_transformer import ViT
 import model_res18 as M
 from einops import rearrange
 import spatial as S
-
+import mdn1
 
 #### NETWORK DECLARATION ####
 # torch.autograd.set_detect_anomaly(True) # this is to check any problem in the network by backtracking
 
 class VT_AE(nn.Module):
-    def __init__(self, image_size = 512,
+    def __init__(self, image_size = 512, #hat einen Einfluss, wenn wir mit gaussian mixture trainieren
                     patch_size = 64,
                     num_classes = 1,
                     dim = 512,
@@ -35,9 +35,9 @@ class VT_AE(nn.Module):
             mlp_dim = mlp_dim )
         
      
-        self.decoder = M.decoder2(8)
-        # self.G_estimate= mdn1.MDN() # Trained in modular fashion
-        self.Digcap = S.DigitCaps(in_num_caps=((image_size//patch_size)**2)*8*8, in_dim_caps=8)
+        self.decoder = M.decoder2(1, image_size)
+        #self.G_estimate= mdn1.MDN() # Trained in modular fashion
+        self.Digcap = S.DigitCaps(in_num_caps=((image_size // patch_size) ** 2 * (dim // 8)), in_dim_caps=8)
         self.mask = torch.ones(1, image_size//patch_size, image_size//patch_size).bool().cuda()
         self.Train = train
         
@@ -50,11 +50,10 @@ class VT_AE(nn.Module):
         encoded = self.vt(x, self.mask)
         if self.Train:
             encoded = add_noise(encoded)
-        encoded1, vectors = self.Digcap(encoded.view(b,encoded.size(1)*8*8,-1))
+        encoded1, vectors = self.Digcap(encoded.view(b,encoded.size(1) * (encoded.shape[2] // 8),-1)) #encoded.shape[2] entspricht der dim des feature vectors
         recons = self.decoder(encoded1.view(b,-1,8,8))
-        # pi, mu, sigma = self.G_estimate(encoded)       
-        # return encoded, pi, sigma, mu, recons
-            
+        #pi, mu, sigma = self.G_estimate(encoded)
+        #return encoded, pi, sigma, mu, recons
         return encoded, recons
     
 # Initialize weight function
@@ -76,13 +75,13 @@ def add_noise(latent, noise_type="gaussian", sd=0.2):
     Arguements:
     'gaussian' (string): Gaussian-distributed additive noise.
     'speckle' (string) : Multiplicative noise using out = image + n*image, where n is uniform noise with specified mean & variance.
-    'sd' (integer) : standard deviation used for geenrating noise
+    'sd' (integer) : standard deviation used for generating noise
 
     Input :
         latent : numpy array or cuda tensor.
 
     Output:
-        Array: Noise added input, can be np array or cuda tnesor.
+        Array: Noise added input, can be np array or cuda tensor.
     """
     assert sd >= 0.0
     if noise_type == "gaussian":
@@ -100,9 +99,22 @@ def add_noise(latent, noise_type="gaussian", sd=0.2):
 
 if __name__ == "__main__":
     from torchsummary import summary
+    import logging
 
+    # Konfiguriere das Logging
+    logging.basicConfig(filename='VT_AE_output.txt', filemode='w', level=logging.INFO)
+
+    # Füge einen Stream-Handler hinzu, um die Ausgabe auch in der Konsole anzuzeigen
+    console = logging.StreamHandler()
+    console.setLevel(logging.INFO)
+    logging.getLogger().addHandler(console)
+
+    # Protokolliere eine Beispiel-Ausgabe
     mod = VT_AE().cuda()
-    print(mod)
-    summary(mod, (3,512,512))
+    logging.info(print(mod))
+    logging.info(summary(mod, (3,512,512)))
+
+    # Schließe das Logging
+    logging.shutdown()
 
 

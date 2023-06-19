@@ -8,7 +8,7 @@ from scipy.ndimage import gaussian_filter, median_filter
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
-import cv2
+#import cv2
 from skimage.measure import label
 
 

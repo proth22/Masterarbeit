@@ -53,7 +53,7 @@ def initialize_weights(*models):
                 module.bias.data.zero_()
                 
 class DigitCaps(nn.Module):
-    def __init__(self, out_num_caps=1, in_num_caps=8*8*64, in_dim_caps=8, out_dim_caps=512, decode_idx=-1):
+    def __init__(self, out_num_caps=1, in_num_caps=8*64, in_dim_caps=8, out_dim_caps=64, decode_idx=-1):
         super(DigitCaps, self).__init__()
 
         self.conf = Config()
